@@ -296,4 +296,7 @@ plt.show()
 ### or to be part of the primary cortex ###
 ### We would expect nodes of one network to have higher clustering coefficients ###
 ### with another node of the same network than a node of another network ###
-### 
+### I would expect a node with a high degree to be more central to many processes ###
+### VS ICA, I would expect a high coefficient to explain the most variance ###
+### but be theoretically unrelated to other components ###
+### Short path length likely mean the networks communicate mostly within itself ###
