@@ -298,9 +298,178 @@ class CNN_mnist(nn.Module):
         self.model = nn.Sequential(
 
             # Convolution layer 1
+            nn.Conv2d(in_channels=1,out_channels=2, kernel_size=4),
+            nn.MaxPool2d(2,2),
+            nn.ReLU(),
 
             # Convolution layer 2
+            nn.Conv2d(in_channels=2, out_channels=4, kernel_size=4),
+            nn.MaxPool2d(2,2),
+            nn.ReLU(),
 
             # Linear layer
-
+            nn.Flatten(),
+            nn.Linear(68,10),
+            nn.LogSoftmax()
         )
+### 1. C Pooling helps reduce the spatial size and reduce noise ###
+
+# Create an instance of our mnist cnn
+net = CNN_mnist()
+
+# Learning rate
+lr = .001
+
+# Number of epochs to train for
+n_epochs = 5
+
+# Create our optimizer
+optimizer = optim.Adam(net.parameters(), lr=lr)  # .01, momentum=.5)
+
+print('Initializing Network...\n')
+
+# Store overall performance
+train_loss_tot = []
+test_loss_tot = []
+
+train_acc_tot = []
+test_acc_tot = []
+
+for epoch in range(5):
+    train_loss_arr = []
+    test_loss_arr = []
+
+    # Training set and weight updating
+    for batch_idx, (data, target) in enumerate(tqdm(mnist_train_loader, leave=False)):
+        # Zero the gradient
+        optimizer.zero_grad()
+
+        # Forward pass
+        output = net.model(data)
+
+        # Compute loss
+        loss = F.nll_loss(output, target)
+
+        # Backprop and step
+        loss.backward()
+        optimizer.step()
+
+        # Store loss and accuracy
+        train_loss_arr.append(loss.item())
+        train_acc_tot.append((output.argmax(dim=1) == target).sum() / target.shape[0])
+
+    # Test evaluation
+    with torch.no_grad():
+        for test_batch_idx, (test_data, test_target) in enumerate(mnist_test_loader):
+            # Forward pass (get prediction)
+            test_output = net.model(test_data)
+
+            # Compute loss
+            test_loss = F.nll_loss(test_output, test_target)
+
+            # Store loss and accuracy
+            test_loss_arr.append(test_loss.item())
+            test_acc_tot.append((test_output.argmax(dim=1) == test_target).sum() / test_target.shape[0])
+
+    train_loss_tot.append(np.mean(np.array(train_loss_arr)))
+    test_loss_tot.append(np.mean(np.array(test_loss_arr)))
+
+    print(
+        f'Epoch: {epoch + 1} | Train Loss: {train_loss_tot[-1]:.4f} | Train Acc: {train_acc_tot[-1]:.2f} | Test Loss: {test_loss_tot[-1]:.4f} | Test Acc: {test_acc_tot[-1]:.2f}' )
+
+    total_params = sum(p.numel() for p in net.model.parameters() if p.requires_grad)
+    print(total_params)
+
+### Question: What might be happening and why is the convolutional neural network acheiving higher test accuracy? ###
+### Answer: C The CNN allows us to uncover low level features and relationships among these ###
+### Possibly D and E are also correct; there are fewer trainable parameters in the CNN and ###
+### flattening also may lose some spatial information ###
+
+### YOU CODE HERE
+
+class mnistDense(nn.Module):
+
+    def __init__(self):
+        nn.Module.__init__(self)
+
+        self.model = nn.Sequential(
+
+            # Layer 1
+            nn.Flatten(),
+            nn.Linear(784, 10),
+            nn.ReLU(),
+
+            # Layer 2
+            nn.Linear(10, 10),
+            nn.ReLU(),
+
+            # Layer 3
+            nn.Linear(10,10),
+            nn.LogSoftmax(),
+        )
+
+
+# Create an instance of our mnist cnn
+net = mnistDense()
+
+# Learning rate
+lr = .001
+
+# Number of epochs to train for
+n_epochs = 5
+
+# Create our optimizer
+optimizer = optim.Adam(net.parameters(), lr=lr)  # .01, momentum=.5)
+
+print('Initializing Network...\n')
+
+# Store overall performance
+train_loss_tot = []
+test_loss_tot = []
+
+train_acc_tot = []
+test_acc_tot = []
+
+for epoch in range(5):
+    train_loss_arr = []
+    test_loss_arr = []
+
+    # Training set and weight updating
+    for batch_idx, (data, target) in enumerate(tqdm(mnist_train_loader, leave=False)):
+        # Zero the gradient
+        optimizer.zero_grad()
+
+        # Forward pass
+        output = net.model(data)
+
+        # Compute loss
+        loss = F.nll_loss(output, target)
+
+        # Backprop and step
+        loss.backward()
+        optimizer.step()
+
+        # Store loss and accuracy
+        train_loss_arr.append(loss.item())
+        train_acc_tot.append((output.argmax(dim=1) == target).sum() / target.shape[0])
+
+    # Test evaluation
+    with torch.no_grad():
+        for test_batch_idx, (test_data, test_target) in enumerate(mnist_test_loader):
+            # Forward pass (get prediction)
+            test_output = net.model(test_data)
+
+            # Compute loss
+            test_loss = F.nll_loss(test_output, test_target)
+
+            # Store loss and accuracy
+            test_loss_arr.append(test_loss.item())
+            test_acc_tot.append((test_output.argmax(dim=1) == test_target).sum() / test_target.shape[0])
+
+    train_loss_tot.append(np.mean(np.array(train_loss_arr)))
+    test_loss_tot.append(np.mean(np.array(test_loss_arr)))
+
+    print(
+        f'Epoch: {epoch + 1} | Train Loss: {train_loss_tot[-1]:.4f} | Train Acc: {train_acc_tot[-1]:.2f} | Test Loss: {test_loss_tot[-1]:.4f} | Test Acc: {test_acc_tot[-1]:.2f}')
+    total_params = sum(p.numel() for p in net.model.parameters() if p.requires_grad)
+    print(total_params)
